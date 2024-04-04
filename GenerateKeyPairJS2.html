@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSA Key Generation</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsencrypt/3.1.0/jsencrypt.min.js"></script>
+
+</head>
+<body >
+
+
+    <h1>RSA Key Generation</h1>
+    <div id="keys">
+        <div>
+            <h2>Private Key (XML)</h2>
+            <pre id="privateKeyXML"></pre>
+        </div>
+        <div>
+            <h2>Public Key (XML)</h2>
+            <pre id="publicKeyXML"></pre>
+        </div>
+        <div>
+            <h2>Private Key (PEM)</h2>
+            <pre id="privateKeyPEM"></pre>
+        </div>
+        <div>
+            <h2>Public Key (PEM)</h2>
+            <pre id="publicKeyPEM"></pre>
+        </div>
+    </div>
+
+    <script>
+        function generateRSAKeys() {
+            var rsa = new JSEncrypt({ default_key_size: 1024 });
+            rsa.getKey(function () {
+                var privateKeyXML = rsa.getPrivateKey();
+                var publicKeyXML = rsa.getPublicKey();
+                var privateKeyPEM = convertKeyToPEM(privateKeyXML, "PRIVATE KEY");
+                var publicKeyPEM = convertKeyToPEM(publicKeyXML, "PUBLIC KEY");
+                document.getElementById("privateKeyXML").innerText = privateKeyXML;
+                document.getElementById("publicKeyXML").innerText = publicKeyXML;
+                document.getElementById("privateKeyPEM").innerText = privateKeyPEM;
+                document.getElementById("publicKeyPEM").innerText = publicKeyPEM;
+            });
+        }
+        function removeBeginEndLines(text) {
+            // Use regular expression to match lines starting with -----BEGIN or -----END
+            // The '^' character denotes the start of the line
+            // '.*' matches any character (except newline) zero or more times
+            // The '$' character denotes the end of the line
+            // 'm' flag is used for multiline matching
+            const regex = /^(-----BEGIN|-----END).*/gm;
+            
+            // Replace all matched lines with an empty string
+            const result = text.replace(regex, '');
+
+            return result;
+        }
+        function convertKeyToPEM(key, type) {
+            key = removeBeginEndLines(key);
+            // Strip the key type and newlines
+            key = key.replace(/\n/g, '');
+
+            // Split into 64-character chunks
+            var chunks = [];
+            for (var i = 0; i < key.length; i += 64) {
+                chunks.push(key.substring(i, i + 64));
+            }
+
+            // Construct the PEM format
+            var pem = "-----BEGIN " + type + "-----\n";
+            pem += chunks.join("\n");
+            pem += "\n-----END " + type + "-----\n";
+
+            return pem;
+        }
+
+        generateRSAKeys();
+    </script>
+
+
+</body>
+</html>
